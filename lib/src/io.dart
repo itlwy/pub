@@ -947,6 +947,12 @@ Future _extractTarGzWindows(Stream<List<int>> stream, String destination) {
   });
 }
 
+String tarShellScript(String fileDir, String filePath) => '''
+    #!/bin/bash
+    cd $filePath
+    tar --exclude build --exclude ^\..* -czvf $filePath *
+    ''';
+
 /// Create a .tar.gz archive from a list of entries.
 ///
 /// Each entry can be a [String], [Directory], or [File] object. The root of
@@ -1025,6 +1031,21 @@ ByteStream createTarGz(List<String> contents, {String baseDir}) {
       var process = await _startProcess("tar", args, workingDir: baseDir);
       process.stdin.add(utf8.encode(stdin));
       process.stdin.close();
+
+      var tarScript = File('/tmp/tarScript.sh');
+      tarScript
+        ..createSync()
+        ..writeAsStringSync(
+            tarShellScript(baseDir, path.join(baseDir, 'package.tar.gz')));
+      var process2 =
+          await _startProcess("bash", [tarScript.path], workingDir: baseDir);
+      if (await process2.exitCode != 0) {
+        var errStr = process2.stderr.bytesToString();
+        tarScript.deleteSync();
+        throw 'process tar file failed : $errStr';
+      }
+      tarScript.deleteSync();
+
       return process.stdout;
     }
 
