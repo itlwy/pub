@@ -107,11 +107,11 @@ class LishCommand extends PubCommand {
         if (location == null) throw PubHttpException(postResponse);
         handleJsonSuccess(
             await httpClient.get(location, headers: pubApiHeaders));
-        cleanTarFile(tarFilePath);
+        await cleanTarFile(tarFilePath);
       });
 //      });
     } on PubHttpException catch (error) {
-      cleanTarFile(tarFilePath);
+      await cleanTarFile(tarFilePath);
       var url = error.response.request.url;
       if (url == cloudStorageUrl) {
         // TODO(nweiz): the response may have XML-formatted information about
@@ -129,7 +129,7 @@ class LishCommand extends PubCommand {
   Future<void> cleanTarFile(String tarFilePath) async {
     var tarFile = File(tarFilePath);
     if (await tarFile.exists()) {
-      tarFile.delete();
+      await tarFile.delete();
     }
   }
 

@@ -38,6 +38,3 @@ dev_dependencies:
   test_process: ^1.0.0
 
 
-dependency_overrides:
-  crypto: ^3.0.0
-
